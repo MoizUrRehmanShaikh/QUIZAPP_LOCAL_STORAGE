@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Quiz App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --card-bg: rgba(18, 24, 38, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary-accent: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --option-bg: rgba(255, 255, 255, 0.03);
+            --option-border: rgba(255, 255, 255, 0.08);
+            --option-hover-border: #6366f1;
+            --option-hover-bg: rgba(99, 102, 241, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --timer-bg: rgba(99, 102, 241, 0.12);
+            --timer-text: #818cf8;
+            --radius-lg: 24px;
+            --radius-md: 14px;
+            --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.25) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.2) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(14, 165, 233, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            padding: 20px;
+        }
+
+        #container {
+            width: 100%;
+            max-width: 580px;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 40px 35px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle top glowing bar */
+        #container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        #timer {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--timer-text);
+            background: var(--timer-bg);
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            float: right;
+        }
+
+        #qno {
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #818cf8;
+            margin-bottom: 8px;
+            font-weight: 700;
+            clear: left;
+        }
+
+        #question {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 28px;
+            line-height: 1.4;
+            clear: both;
+        }
+
+        .op1 {
+            width: 100%;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            margin: 12px 0;
+            border: 1.5px solid var(--option-border);
+            border-radius: var(--radius-md);
+            background: var(--option-bg);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .op1:hover {
+            border-color: var(--option-hover-border);
+            background: var(--option-hover-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.12);
+        }
+
+        /* Modern CSS :has selector to highlight selected option card */
+        .op1:has(input:checked) {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 0 1px #6366f1, 0 8px 24px rgba(99, 102, 241, 0.2);
+        }
+
+        .op1 input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            margin-right: 16px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            display: grid;
+            place-content: center;
+        }
+
+        .op1 input[type="radio"]::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transform: scale(0);
+            transition: 0.15s transform ease-in-out;
+            background-color: #fff;
+        }
+
+        .op1 input[type="radio"]:checked {
+            border-color: #818cf8;
+            background-color: #6366f1;
+        }
+
+        .op1 input[type="radio"]:checked::before {
+            transform: scale(1);
+        }
+
+        .op1 label {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            flex: 1;
+            transition: color 0.2s ease;
+        }
+
+        .op1:hover label,
+        .op1:has(input:checked) label {
+            color: var(--text-main);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            background: var(--primary-gradient);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.55);
+            filter: brightness(1.05);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 5px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Result Container styling when quiz finishes */
+        #container h1:not(#timer):not(#question):not(#qno) {
+            color: var(--text-main);
+            font-size: 26px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        #container h2 {
+            color: #818cf8;
+            font-size: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        @media (max-width: 650px) {
+            #container {
+                padding: 30px 22px;
+                border-radius: 20px;
+            }
+
+            #question {
+                font-size: 19px;
+            }
+
+            .op1 {
+                padding: 12px 16px;
+                min-height: 50px;
+            }
+
+            .op1 label {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <h1 id="timer">Time : 0:10</h1>
+        <h1 id="qno">Question : 1</h1>
+        <h1 id="question">SMIT STAND FOR........?</h1>
+
+        <div class="op1">
+            <input type="radio" name="quiz" value="SMIT" id="option1" />
+            <label for="option1" id="label1">Option 1</label>
+        </div>
+        <div class="op1">
+            <input type="radio" name="quiz" value="SMIT" id="option2" />
+            <label for="option2" id="label2">Option 2</label>
+        </div>
+        <div class="op1">
+            <input type="radio" name="quiz" value="SMIT" id="option3" />
+            <label for="option3" id="label3">Option 3</label>
+        </div>
+        <div class="op1">
+            <input type="radio" name="quiz" value="SMIT" id="option4" />
+            <label for="option4" id="label4">Option 4</label>
+        </div>
+
+        <button>Next</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+   <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    #container {
+        width: 600px;
+        background: #ffffff;
+        padding: 35px;
+        border-radius: 18px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    #qno {
+        font-size: 16px;
+        color: #667eea;
+        margin-bottom: 12px;
+        font-weight: bold;
+    }
+
+    #question {
+        font-size: 28px;
+        color: #222;
+        margin-bottom: 25px;
+        line-height: 1.3;
+    }
+
+    .op1 {
+        width: 100%;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        padding: 15px 18px;
+        margin: 12px 0;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        background: #fafafa;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+
+    .op1:hover {
+        border-color: #667eea;
+        background: #f1f3ff;
+        transform: translateY(-2px);
+    }
+
+    .op1 input {
+        width: 18px;
+        height: 18px;
+        margin-right: 14px;
+        cursor: pointer;
+        accent-color: #667eea;
+    }
+
+    .op1 label {
+        font-size: 17px;
+        color: #333;
+        cursor: pointer;
+        flex: 1;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 25px;
+        padding: 15px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.35);
+    }
+
+    button:active {
+        transform: scale(0.98);
+    }
+
+    @media (max-width: 650px) {
+        #container {
+            width: 90%;
+            padding: 25px;
+        }
+
+        #question {
+            font-size: 23px;
+        }
+    }
+</style>
+</head>
+
+<body>
+    <div id="container">
+        <h1 id="timer">Time</h1>
+        <h1 id="qno">Question : 1) </h1>
+        <h1 id="question">SMIT STAND FOR</h1>
+        <div class="op1">
+            <input type="radio" name="quiz" value="SMIT" id="option1" />
+            <label for="option1" id="label1">SMIT</label>
+        </div>
+        <div class="op1">
+            <input type="radio" name="quiz" value="SMIT" id="option2" />
+            <label for="option2" id="label2">SMIT</label>
+        </div>
+        <div class="op1">
+            <input type="radio" name="quiz" value="SMIT" id="option3" />
+            <label for="option3" id="label3">SMIT</label>
+        </div>
+        <div class="op1">
+            <input type="radio" name="quiz" value="SMIT" id="option4" />
+            <label for="option4" id="label4">SMIT</label>
+        </div>
+
+
+        <button>next</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html> -->
